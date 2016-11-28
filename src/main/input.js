@@ -226,7 +226,6 @@ function axisRescale ( x, orig, bool) {
     }
 };
 
-
 function meleeXAxisRescale (x, bool) {
   return axisRescale ( x, meleeXOrig, bool );
 };
