@@ -7,7 +7,7 @@ import {
   cd,
   controllerNameFromIDnumber,
   controllerIDNumberFromGamepadID,
-  scaleToGCAxis,
+  scaleToMeleeAxes,
   scaleToGCTrigger
 } from "main/input";
 
@@ -667,10 +667,20 @@ window.interpretInputs = function(i, active) {
     var gamepad = navigator.getGamepads()[currentPlayers[i]];
     //console.log(gamepad.axes);
 
-    var lstickX = scaleToGCAxis (gamepad.axes[controllerMaps[mType[i]][button.lsX]], -cd[i].ls.x);
-    var lstickY = scaleToGCAxis (gamepad.axes[controllerMaps[mType[i]][button.lsY]], -cd[i].ls.y) * -1; // need to flip up/down
-    var cstickX = scaleToGCAxis (gamepad.axes[controllerMaps[mType[i]][button.csX]], -cd[i].cs.x);
-    var cstickY = scaleToGCAxis (gamepad.axes[controllerMaps[mType[i]][button.csY]], -cd[i].cs.y) * -1; // need to flip up/down
+    var lsticks = scaleToMeleeAxes ( gamepad.axes[controllerMaps[mType[i]][button.lsX]],    // x-axis data
+                                     gamepad.axes[controllerMaps[mType[i]][button.lsY]]*-1, // y-axis data, need to flip up/down
+                                     -cd[i].ls.x, // x-axis "custom deadzone" offset
+                                     -cd[i].ls.y, // y-axis "custom deadzone" offset
+                                     4/3, 4/3);   // scale factors
+    var csticks = scaleToMeleeAxes ( gamepad.axes[controllerMaps[mType[i]][button.csX]],    // x-axis data
+                                     gamepad.axes[controllerMaps[mType[i]][button.csY]]*-1, // y-axis data, need to flip up/down
+                                     -cd[i].cs.x, // x-axis "custom deadzone" offset
+                                     -cd[i].cs.y, // y-axis "custom deadzone" offset
+                                     4/3, 4/3);   // scale factors
+    var lstickX = lsticks[0];
+    var lstickY = lsticks[1];
+    var cstickX = csticks[0];
+    var cstickY = csticks[1];
     if (mType[i] == 3){
       //console.log(gamepad.buttons[map.rA[mType[i]]]);
       //-cd[i].l
