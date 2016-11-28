@@ -143,22 +143,23 @@ export function renormaliseAxisInput([lx, ly], [rx, ry], [dx, dy], [ux, uy], [x,
 
 // The following functions renormalise input to mimic GC controllers.
 
+// clamps a value between -1 and 1
+function toInterval (x) {
+  if (x < -1) {
+    return -1;
+  }
+  else if (x > 1) {
+    return 1;
+  }
+  else {
+    return x;
+  }
+};
+
 // Analog sticks.
 // x = axis input
-export function scaleToGCAxis ( x, offset, bool ) {
-    let xnew = (x+offset) / 0.75;
-    if (xnew > 1) {
-      return 1;
-    }
-    else if (xnew < -1) {
-      return -1;
-    }
-    else if (bool && Math.abs(xnew) < 0.28){
-      return 0;
-    } 
-    else {
-      return (Math.round (xnew*80)/80);
-    }
+export function scaleToGCAxis ( x, offset, scale ) {
+    return toInterval((x+offset) * scale);
 };
 
 // Analog triggers.
@@ -174,4 +175,65 @@ export function scaleToGCTrigger ( t, offset, scale ) {
     else {
       return tnew;
     }    
+};
+
+
+// Melee GC controller simulation
+// data courtesy of ARTIFICE
+// horizontal: 19 -- 122 -- 232
+const meleeXMin  = 19 ;
+const meleeXOrig = 122;
+const meleeXMax  = 232;
+// vertical  : 32 -- 134 -- 246
+const meleeYMin  = 32 ;
+const meleeYOrig = 134;
+const meleeYMax  = 232;
+
+const steps = 80;
+
+const deadzoneConst = 0.28;
+
+function axisRescale ( x, min, orig, max, bool ) {
+  // the following line is equivalent to checking that the result of this function lies in the deadzone
+  // no need to check for deadzones later
+    if (bool && x < steps*deadzoneConst/(max-orig) && x > steps*deadzoneConst/(min-orig)) {
+      return 0;
+    }
+    else if (x < 0) {
+      return x*(orig-min)/steps;
+    }
+    else {
+      return x*(max-orig)/steps;
+    }
+};
+
+function meleeXAxisRescale (x, bool) {
+  return axisRescale ( x, meleeXMin, meleeXOrig, meleeXMax, bool);
+};
+
+function meleeYAxisRescale (y, bool) {
+  return axisRescale ( y, meleeYMin, meleeYOrig, meleeYMax, bool);
+};
+
+function nonLinearRescale ( [x,y] ) {
+  let norm = Math.sqrt(x*x + y*y);
+  if (norm < 1) {
+    return ([x,y]);
+  }
+  else if (Math.abs(y) <= Math.abs(x)/3){ // constants (i.e. 1, 1/3) maybe not exact
+    return ([toInterval(x),y]);
+  }
+  else {
+    return ( [x/norm, y/norm]);
+  }
+};
+
+function meleeClamp (x) {
+  return Math.round(steps*x)/steps;
+};
+
+export function scaleToMeleeAxes ( x, y, offsetx, offsety, scalex, scaley, bool ) {
+    let xnew = meleeXAxisRescale (scaleToGCAxis ( x, offsetx, scalex ), bool);
+    let ynew = meleeYAxisRescale (scaleToGCAxis ( y, offsety, scaley ), bool);
+    return  (nonLinearRescale ( [xnew, ynew] )).map(meleeClamp);
 };
