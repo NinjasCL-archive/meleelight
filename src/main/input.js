@@ -131,14 +131,14 @@ export function controllerNameFromIDnumber(number) {
 
 // the following function gives an approximation to the extreme raw axis data for a given controller
 // of course, this varies between controllers, but this serves as a useful first approximation
-// function output: origx, origy, lx, ly, rx, ry, dx, dy, ux, uy
+// function output: [[origx, origy], [lx, ly], [rx, ry], [dx, dy], [ux, uy]]
 function axisDataFromIDNumber(number) {
   if (number == 4) { // TigerGame 3-in-1
     let orig = 0.05098;
-    return [orig, -orig, -0.7098, -orig, 0.85098, -orig, orig, 0.73333, orig, -0.8588];
+    return [[orig, -orig], [-0.7098, -orig], [0.85098, -orig], [orig, 0.73333], [orig, -0.8588]];
     }
   else {
-    return [0,0,-0.75,0,0.75,0,0,0.75,0,-0.75]; // default
+    return [[0,0],[-0.75,0],[0.75,0],[0,0.75],[0,-0.75]]; // default
   }
 };
 
@@ -240,7 +240,7 @@ function discretise (x, min, orig, max) {
 
 // Rescales controller input to -1 -- 0 -- 1 in both axes
 function scaleToUnitAxes ( x,y, number, customCenterX, customCenterY ) { // number = gamepad ID number
-    let [origx, origy, lx, ly, rx, ry, dx, dy, ux, uy] = axisDataFromIDNumber(number);
+    let [[origx, origy], [lx, ly], [rx, ry], [dx, dy], [ux, uy]] = axisDataFromIDNumber(number);
     origx += customCenterX;
     origy += customCenterY;
     let [xnew, ynew] = renormaliseAxisInput([lx-origx, ly-origy], [rx-origx, ry-origy], [dx-origx, dy-origy], [ux-origx, uy-origy], [x-origx, y-origy]);
