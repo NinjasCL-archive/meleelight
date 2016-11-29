@@ -4,7 +4,7 @@ import {
   button,
   keyboardMap,
   controllerMaps,
-  cd,
+  custcent,
   controllerNameFromIDnumber,
   controllerIDNumberFromGamepadID,
   scaleToMeleeAxes,
@@ -667,25 +667,25 @@ window.interpretInputs = function(i, active) {
     var gamepad = navigator.getGamepads()[currentPlayers[i]];
     //console.log(gamepad.axes);
 
-    var lsticks = scaleToMeleeAxes ( gamepad.axes[controllerMaps[mType[i]][button.lsX]],    // x-axis data
-                                     gamepad.axes[controllerMaps[mType[i]][button.lsY]]*-1, // y-axis data, need to flip up/down
-                                     -cd[i].ls.x, // x-axis "custom deadzone" offset
-                                     -cd[i].ls.y, // y-axis "custom deadzone" offset
-                                     4/3, 4/3, // scale factors
-                                     true);   // true: deadzones
+    var lsticks = scaleToMeleeAxes ( gamepad.axes[controllerMaps[mType[i]][button.lsX]], // x-axis data
+                                     gamepad.axes[controllerMaps[mType[i]][button.lsY]], // y-axis data, need to flip up/down
+                                     mType[i],
+                                     true, // true: deadzones
+                                     custcent[i].ls.x,
+                                     custcent[i].ls.y);   
     var csticks = scaleToMeleeAxes ( gamepad.axes[controllerMaps[mType[i]][button.csX]],
-                                     gamepad.axes[controllerMaps[mType[i]][button.csY]]*-1,
-                                     -cd[i].cs.x,
-                                     -cd[i].cs.y,
-                                     4/3, 4/3
-                                     , true);
+                                     gamepad.axes[controllerMaps[mType[i]][button.csY]],
+                                     mType[i],
+                                     true,
+                                     custcent[i].cs.x,
+                                     custcent[i].cs.y);
     [player[i].inputs.rawlStickAxis[0].x,player[i].inputs.rawlStickAxis[0].y] = 
                   scaleToMeleeAxes ( gamepad.axes[controllerMaps[mType[i]][button.lsX]],   
-                                     gamepad.axes[controllerMaps[mType[i]][button.lsY]]*-1, 
-                                     -cd[i].ls.x,
-                                     -cd[i].ls.y,
-                                     4/3, 4/3,
-                                     false);   // false: no deadzones
+                                     gamepad.axes[controllerMaps[mType[i]][button.lsY]], 
+                                     mType[i],
+                                     false,   // false: no deadzones
+                                     custcent[i].ls.x,
+                                     custcent[i].ls.y);
     var lstickX = lsticks[0];
     var lstickY = lsticks[1];
     var cstickX = csticks[0];
@@ -693,19 +693,19 @@ window.interpretInputs = function(i, active) {
 
     if (mType[i] == 3){
       //console.log(gamepad.buttons[map.rA[mType[i]]]);
-      //-cd[i].l
-      //-cd[i].r
+      //-custcent[i].l
+      //-custcent[i].r
       // FOR XBOX CONTROLLERS
-      var lAnalog = scaleToGCTrigger(gamepad.buttons[controllerMaps[mType[i]][button.lA]].value, 0.2-cd[i].l, 1); // shifted by +0.2
-      var rAnalog = scaleToGCTrigger(gamepad.buttons[controllerMaps[mType[i]][button.rA]].value, 0.2-cd[i].r, 1); // shifted by +0.2
+      var lAnalog = scaleToGCTrigger(gamepad.buttons[controllerMaps[mType[i]][button.lA]].value, 0.2-custcent[i].l, 1); // shifted by +0.2
+      var rAnalog = scaleToGCTrigger(gamepad.buttons[controllerMaps[mType[i]][button.rA]].value, 0.2-custcent[i].r, 1); // shifted by +0.2
     }
     else if (mType[i] == 2){
-      var lAnalog = scaleToGCTrigger(gamepad.axes[controllerMaps[mType[i]][button.lA]],0.867-cd[i].l, -1); // shifted by +0.867, flipped
-      var rAnalog = scaleToGCTrigger(gamepad.axes[controllerMaps[mType[i]][button.rA]],0.867-cd[i].r, -1); // shifted by +0.867, flipped
+      var lAnalog = scaleToGCTrigger(gamepad.axes[controllerMaps[mType[i]][button.lA]],0.867-custcent[i].l, -1); // shifted by +0.867, flipped
+      var rAnalog = scaleToGCTrigger(gamepad.axes[controllerMaps[mType[i]][button.rA]],0.867-custcent[i].r, -1); // shifted by +0.867, flipped
     }
     else {
-      var lAnalog = scaleToGCTrigger(gamepad.axes[controllerMaps[mType[i]][button.lA]],0.867-cd[i].l, 1); // shifted by +0.867
-      var rAnalog = scaleToGCTrigger(gamepad.axes[controllerMaps[mType[i]][button.rA]],0.867-cd[i].r, 1); // shifted by +0.867
+      var lAnalog = scaleToGCTrigger(gamepad.axes[controllerMaps[mType[i]][button.lA]],0.867-custcent[i].l, 1); // shifted by +0.867
+      var rAnalog = scaleToGCTrigger(gamepad.axes[controllerMaps[mType[i]][button.rA]],0.867-custcent[i].r, 1); // shifted by +0.867
     }
   }
 
@@ -878,16 +878,16 @@ window.interpretInputs = function(i, active) {
       setTimeout(function() {
         if (gamepad.buttons[controllerMaps[mType[i]][button.du]].pressed && gamepad.buttons[controllerMaps[mType[
             i]][button.x]].pressed && gamepad.buttons[controllerMaps[mType[i]][button.y]].pressed) {
-          //cd[i].ls = new Vec2D(gamepad.axes[0],gamepad.axes[1]*-1);
-          //cd[i].cs = new Vec2D(gamepad.axes[5],gamepad.axes[2]*-1);
-          //cd[i].l = gamepad.axes[3]+0.8;
-          //cd[i].r = gamepad.axes[4]+0.8;
-          cd[i].ls = new Vec2D(gamepad.axes[controllerMaps[mType[i]][button.lsX]], gamepad.axes[controllerMaps[
+          //custcent[i].ls = new Vec2D(gamepad.axes[0],gamepad.axes[1]*-1);
+          //custcent[i].cs = new Vec2D(gamepad.axes[5],gamepad.axes[2]*-1);
+          //custcent[i].l = gamepad.axes[3]+0.8;
+          //custcent[i].r = gamepad.axes[4]+0.8;
+          custcent[i].ls = new Vec2D(gamepad.axes[controllerMaps[mType[i]][button.lsX]], gamepad.axes[controllerMaps[
             mType[i]][button.lsY]] * -1);
-          cd[i].cs = new Vec2D(gamepad.axes[controllerMaps[mType[i]][button.csX]], gamepad.axes[controllerMaps[
+          custcent[i].cs = new Vec2D(gamepad.axes[controllerMaps[mType[i]][button.csX]], gamepad.axes[controllerMaps[
             mType[i]][button.csY]] * -1);
-          cd[i].l = gamepad.axes[controllerMaps[mType[i]][button.lA]] + 0.8;
-          cd[i].r = gamepad.axes[controllerMaps[mType[i]][button.rA]] + 0.8;
+          custcent[i].l = gamepad.axes[controllerMaps[mType[i]][button.lA]] + 0.8;
+          custcent[i].r = gamepad.axes[controllerMaps[mType[i]][button.rA]] + 0.8;
           console.log("Controller Reset!");
           $("#resetIndicator" + i).fadeIn(100);
           $("#resetIndicator" + i).fadeOut(500);
